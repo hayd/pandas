@@ -10,6 +10,87 @@ import traceback
 from pandas.core.datetools import format as date_format
 from pandas.core.api import DataFrame, isnull
 
+
+
+import sqlalchemy
+from sqlalchemy import create_engine, Column, String, Integer, Float, Unicode, MetaData, Table
+from sqlalchemy.orm import mapper, create_session
+
+def write_frame2(frame, name, uri, table=None, if_exists='fail', **kwargs):
+    """
+    write frame to the db specified by uri, in the sqlalchemy format.
+
+    TODO: what to do if the table exists - options overwrite, append, fail, other??
+    TODO: decide on sane type support and mappings.
+    BigInteger
+Boolean
+Date
+DateTime
+Interval
+Float
+Integer
+Numeric
+String
+Text
+Time
+Unicode
+UnicodeText
+
+    :param frame:
+    :param name:
+    :param uri:
+    :param table:
+    :param if_exists:
+    :param kwargs:
+    :return:
+    """
+    engine = create_engine(uri)
+
+    metadata = MetaData(bind=engine)
+
+    type_mapping = {
+        'int': Integer,
+        'int32': Integer,
+        'int64': Integer,
+        'float': Float,
+        'float32': Float,
+        'float64': Float,
+        'unicode': Unicode,
+        'string': Unicode
+        }
+
+    index_column = Column('id', Integer, primary_key=True)
+
+    if table is None:
+        table_columns = []
+        for column_name, column_type in frame.dtypes.iteritems():
+            column_type = str(column_type)
+            sql_col_type = type_mapping[column_type]
+            table_columns.append(Column(column_name, sql_col_type))
+
+        # create the table
+        table = Table(name, metadata,
+                      index_column,
+                      *table_columns)
+
+        if if_exists == 'replace':
+            table.drop()
+
+        table.create() # will fail if table exists
+
+    # insert data into the table
+    data = [tuple(x) for x in frame.values]
+    table.insert().values(data).execute()
+    #for row in frame.iterrows():
+    #    table.insert().values(row).execute()
+
+
+#    session = create_session(bind=engine, autocommit=False, autoflush=True)
+
+
+
+
+
 #------------------------------------------------------------------------------
 # Helper execution function
 
