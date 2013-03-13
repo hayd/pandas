@@ -7,16 +7,39 @@ from datetime import datetime, date
 import numpy as np
 import traceback
 
+
 from pandas.core.datetools import format as date_format
 from pandas.core.api import DataFrame, isnull
-
+from pandas.core.common import notnull
 
 
 import sqlalchemy
 from sqlalchemy import create_engine, Column, String, Integer, Float, Unicode, MetaData, Table
-from sqlalchemy.orm import mapper, create_session
 
-def write_frame2(frame, name, uri, table=None, if_exists='fail', **kwargs):
+
+_SQLALCHEMY_TYPE_MAP = {
+    'int': Integer,
+    'int32': Integer,
+    'int64': Integer,
+    'float': Float,
+    'float32': Float,
+    'float64': Float,
+    'unicode': Unicode,
+    'string': Unicode,
+    'str': Unicode
+}
+
+#TODO: smarter storage of numpy dtypes
+_NUMPY_TYPE_MAP = {
+    'int32': int,
+    'int64': int,
+    'float32': float,
+    'float64': float,
+#complex:
+}
+
+
+def autowrite_frame(frame, name, uri, table=None, if_exists='fail', **kwargs):
     """
     write frame to the db specified by uri, in the sqlalchemy format.
 
@@ -48,24 +71,13 @@ UnicodeText
 
     metadata = MetaData(bind=engine)
 
-    type_mapping = {
-        'int': Integer,
-        'int32': Integer,
-        'int64': Integer,
-        'float': Float,
-        'float32': Float,
-        'float64': Float,
-        'unicode': Unicode,
-        'string': Unicode
-        }
-
     index_column = Column('id', Integer, primary_key=True)
 
     if table is None:
         table_columns = []
         for column_name, column_type in frame.dtypes.iteritems():
             column_type = str(column_type)
-            sql_col_type = type_mapping[column_type]
+            sql_col_type = _SQLALCHEMY_TYPE_MAP[column_type]
             table_columns.append(Column(column_name, sql_col_type))
 
         # create the table
@@ -78,18 +90,35 @@ UnicodeText
 
         table.create() # will fail if table exists
 
+    for column in frame.columns:
+        col_convert = _NUMPY_TYPE_MAP.get(str(column.dtype), False)
+        if col_convert:
+            column = column.astype(col_convert)
+
+    frame = frame.where(notnull(frame), None)
+
     # insert data into the table
     data = [tuple(x) for x in frame.values]
     table.insert().values(data).execute()
-    #for row in frame.iterrows():
-    #    table.insert().values(row).execute()
 
 
-#    session = create_session(bind=engine, autocommit=False, autoflush=True)
+def autoload_frame(uri, table_name):
+    """
+    Read a dataframe from an SQL database using SQLAlchemy autoload functionality
 
+    :param uri:
+    :param table:
+    :return:
+    """
+    engine = create_engine(uri)
 
-
-
+    metadata = MetaData(bind=engine)
+    table = Table(table_name, metadata, autoload=True)
+    q = table.select()
+    result = engine.execute(q)
+    data = DataFrame.from_records(result.fetchall(), names=table.columns.keys())
+    result.close()
+    return data
 
 #------------------------------------------------------------------------------
 # Helper execution function
