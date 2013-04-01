@@ -3838,6 +3838,21 @@ class TestDataFrame(unittest.TestCase, CheckIndexing,
         assert_frame_equal(self.frame.head(), self.frame[:5])
         assert_frame_equal(self.frame.tail(), self.frame[-5:])
 
+    def test_ff(self):
+        df = DataFrame([[1,2],[3,4]], columns=['a', 'b'])
+        df0 = DataFrame([[1,2]], columns=['a', 'b'])
+        df1 = DataFrame([[3,4]], columns=['a', 'b'], index=[1])
+        dfe = DataFrame(columns=['a', 'b'])
+        assert_frame_equal(df.ff({'a': 1}), df0)
+        assert_frame_equal(df.ff({'a': 1}, how='all'), df0)
+        assert_frame_equal(df.ff({'a': 1, 'b': 2}), df0)
+        assert_frame_equal(df.ff({'a': 1, 'b': 4}, how='any'), df)
+        assert_frame_equal(df.ff({'a': 1, 'b': 4}, how='all'), dfe, check_dtype=False)
+
+        assert_frame_equal(df.ff({'a': lambda x: x == 1}), df0)
+        assert_frame_equal(df.ff({'a': lambda x: 0 < x < 2}), df0)
+        assert_frame_equal(df.ff({'a': lambda x: x == 1, 'b': 2}), df0)
+
     def test_insert(self):
         df = DataFrame(np.random.randn(5, 3), index=np.arange(5),
                        columns=['c', 'b', 'a'])

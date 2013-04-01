@@ -3786,6 +3786,77 @@ class DataFrame(NDFrame):
         """
         return self[-n:]
 
+    def ff(self, filter=None, how='all', complement=False):
+        """
+        Restrict frame's rows to only those which satisfy
+        for col_name, col_value in filter.items():
+            row[col_name] == col_value or col_value(row[col_name])
+
+        Parameters
+        ----------
+        filter : dictionary
+            Keys are column names and values are criteria,
+            where critria is either a value (check equals) or a function
+        how : string ('all' or 'any')
+            If 'all' then returns those rows which satisfy every criteria
+            otherwise returns those rows which satisfy at least one criteria
+        complement : boolean
+            If True returns the rows which don't satisfy the criteria
+
+        Notes
+        -----
+        df.ff({'a': 1, 'b': lambda x: 1 < x < 2})
+        is equivalent to
+        df[(df.a == 1) & (1 < df.b) & (df.b < 2)]
+
+        Always returns a copy
+
+        Examples
+        --------
+        >>> df = DataFrame([['A', 1], ['A', 2], ['A', 3],
+                            ['B', 1], ['B', 2]], columns=['x', 'y'])
+        >>> df
+           x  y
+        0  A  1
+        1  A  2
+        2  A  3
+        3  B  1
+        4  B  2
+        >>> df.ff({'x': 'A'})
+           x  y
+        0  A  1
+        1  A  2
+        2  A  3
+        >>> df.ff({'y': lambda x: x == 2 or x == 3})
+           x  y
+        1  A  2
+        2  A  3
+        4  B  2
+        >>> df.ff({'y': lambda x: x == 2 or x == 3}, complement=True)
+           x  y
+        0  A  1
+        3  B  1
+
+        Returns
+        -------
+        DataFrame with filtered rows
+        """
+        if not filter:
+            return self
+
+        mask = True if how == 'all' else False
+        op = np.bitwise_and if how == 'all' else np.bitwise_or
+        for col_name, col_value in filter.iteritems():
+            if hasattr(col_value, '__call__'):  # test it's a function
+                mask = op(mask, self[col_name].apply(col_value))
+            else:
+                mask = op(mask, self[col_name] == col_value)
+
+        if complement:
+            return self[~mask]
+        else:
+            return self[mask]
+
     #----------------------------------------------------------------------
     # Data reshaping
 
