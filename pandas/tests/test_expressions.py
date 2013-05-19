@@ -145,6 +145,13 @@ class TestExpressions(unittest.TestCase):
         expr.set_numexpr_threads()
         testit()
 
+    def test_term(self):
+        self.assertRaises(Exception, Term.__init__)
+        self.assertRaises(Exception, Term.__init__, 'blah')
+        self.assertRaises(Exception, Term.__init__, 'index')
+        self.assertRaises(Exception, Term.__init__, 'index', '==')
+        self.assertRaises(Exception, Term.__init__, 'index', '>', 5)
+
 if __name__ == '__main__':
     # unittest.main()
     import nose

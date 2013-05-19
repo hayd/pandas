@@ -1459,12 +1459,6 @@ class TestHDFStore(unittest.TestCase):
             for t in terms:
                 self.assertRaises(Exception, store.select, 'wp', t)
 
-            self.assertRaises(Exception, Term.__init__)
-            self.assertRaises(Exception, Term.__init__, 'blah')
-            self.assertRaises(Exception, Term.__init__, 'index')
-            self.assertRaises(Exception, Term.__init__, 'index', '==')
-            self.assertRaises(Exception, Term.__init__, 'index', '>', 5)
-                
             # panel
             result = store.select('wp', [Term(
                         'major_axis<20000108'), Term('minor_axis', '=', ['A', 'B'])])
