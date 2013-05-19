@@ -10,9 +10,6 @@ import re
 
 from datetime import datetime, date
 
-'''from pandas import (
-    Series, TimeSeries, DataFrame, Panel, Panel4D, Index, MultiIndex, Int64Index
-)'''
 from pandas.core.index import Index
 import pandas.lib as lib
 
@@ -297,6 +294,9 @@ class Term(object):
 
     def __repr__(self):
         return 'Term(field=%s, op=%s, value=%s)' % (repr(self.field), repr(self.op), repr(self.value))
+
+    def __eq__(self, other):
+        return all((self.field == other.field, self.op == other.op, self.value == other.value))
 
     @property
     def is_valid(self):
