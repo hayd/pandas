@@ -12,6 +12,7 @@ from numpy.testing import assert_array_equal
 import pandas as pan
 from pandas.core.api import DataFrame, Series, notnull, isnull
 from pandas.core import expressions as expr
+from pandas.core.expressions import Term, Expression
 
 from pandas.util.testing import (assert_almost_equal,
                                  assert_series_equal,
