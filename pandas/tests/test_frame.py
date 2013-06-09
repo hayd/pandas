@@ -3588,11 +3588,22 @@ class TestDataFrame(unittest.TestCase, CheckIndexing,
     def test_from_records_duplicates(self):
         result = DataFrame.from_records([(1, 2, 3), (4, 5, 6)],
                                         columns=['a', 'b', 'a'])
-
         expected = DataFrame([(1, 2, 3), (4, 5, 6)],
                              columns=['a', 'b', 'a'])
-
         assert_frame_equal(result, expected)
+
+    def test_from_records_namedtuple(self):
+        try:
+            from collections import namedtuple
+        except ImportError:
+            raise nose.SkipTest
+        Price = namedtuple('Price', 'ticker date price')
+        ps = [Price('GE', '2010-01-01', 30.00), Price('GE', '2010-01-02', 31.00)]
+        res = DataFrame.from_records(ps)
+        res2 = DataFrame.from_records(iter(ps))
+        expected = DataFrame(ps, columns=ps[0]._fields)
+        assert_frame_equal(res, expected)
+        assert_frame_equal(res2, expected)
 
     def test_from_records_set_index_name(self):
         def create_dict(order_id):

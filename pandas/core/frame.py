@@ -1024,7 +1024,8 @@ class DataFrame(NDFrame):
 
         Parameters
         ----------
-        data : ndarray (structured dtype), list of tuples, dict, or DataFrame
+        data : ndarray (structured dtype), list of tuples or namedtuples,
+               dict, or DataFrame
         index : string, list of fields, array-like
             Field of array to use as the index, alternately a specific set of
             input labels to use
@@ -1064,6 +1065,9 @@ class DataFrame(NDFrame):
             if hasattr(first_row, 'dtype') and first_row.dtype.names:
                 dtype = first_row.dtype
 
+            if columns is None and hasattr(first_row, '_fields'):  # namedtuple, assume all same type
+                columns = first_row._fields
+
             values = [first_row]
 
             i = 1
@@ -1101,7 +1105,10 @@ class DataFrame(NDFrame):
             if columns is not None:
                 columns = _ensure_index(columns)
             arr_columns = columns
+
         else:
+            if columns is None and data and hasattr(data[0], '_fields'):  # namedtuple, assume all same type
+                columns = data[0]._fields
             arrays, arr_columns = _to_arrays(data, columns,
                                              coerce_float=coerce_float)
 
