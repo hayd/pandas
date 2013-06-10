@@ -114,6 +114,9 @@ def osx_clipboard_set(text):
 
 
 def xsel_clipboard_set(text):
-    from subprocess import Popen, PIPE
-    p = Popen(['xsel', '-bi'], stdin=PIPE)
-    p.communicate(input=text)
+    try:
+        from subprocess import Popen, PIPE
+        p = Popen(['xsel', '-bi'], stdin=PIPE)
+        p.communicate(input=text)
+    except OSError:
+        raise OSError("Clipboard_set on your platform requires the xsel command line tool to be installed.")
