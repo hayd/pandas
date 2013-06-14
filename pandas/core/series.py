@@ -474,7 +474,7 @@ class Series(pa.Array, generic.PandasObject):
                                  raise_cast_failure=True)
 
         if not isinstance(subarr, pa.Array):
-            return subarr
+            raise TypeError('DataFrame constructor not properly called!')
 
         if index is None:
             index = _default_index(len(subarr))

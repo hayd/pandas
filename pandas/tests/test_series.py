@@ -291,8 +291,10 @@ class TestSeries(unittest.TestCase, CheckNameIntegration):
         self.assertEquals(id(self.ts.index), id(derived.index))
 
         # Pass in scalar
-        scalar = Series(0.5)
-        self.assert_(isinstance(scalar, float))
+        scalar = 0.5
+        iterator = iter([1])
+        self.assertRaises(TypeError, Series, scalar)
+        self.assertRaises(TypeError, Series, iterator)
 
         # Mixed type Series
         mixed = Series(['hello', np.NaN], index=[0, 1])
