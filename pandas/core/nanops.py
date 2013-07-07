@@ -129,7 +129,7 @@ def _get_values(values, skipna, fill_value=None, fill_value_typ=None, isfinite=F
     if isfinite:
         mask = _isfinite(values)
     else:
-        mask = isnull(values)
+        mask = notnull(values)
 
     dtype    = values.dtype
     dtype_ok = _na_ok_dtype(dtype)
