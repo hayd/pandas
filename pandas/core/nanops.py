@@ -295,7 +295,7 @@ def nanmin(values, axis=None, skipna=True):
             result = com.ensure_float(values.sum(axis))
             result.fill(np.nan)
         else:
-            result = values.min(axis)
+            result = values[~mask].min(axis)
 
     result = _wrap_results(result,dtype)
     return _maybe_null_out(result, axis, mask)
