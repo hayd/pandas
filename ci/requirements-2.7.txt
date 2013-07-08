@@ -3,6 +3,7 @@ pytz==2013b
 xlwt==0.7.5
 numpy==1.7.1
 cython==0.19.1
+sqlalchemy==0.8.2
 bottleneck==0.6.0
 numexpr==2.1
 tables==2.3.1

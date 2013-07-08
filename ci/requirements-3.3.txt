@@ -5,6 +5,7 @@ xlrd==0.9.2
 html5lib==1.0b2
 numpy==1.7.1
 cython==0.19.1
+sqlalchemy==0.8.2
 numexpr==2.1
 tables==3.0.0
 matplotlib==1.2.1
