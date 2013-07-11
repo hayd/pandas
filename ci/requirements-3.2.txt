@@ -10,3 +10,4 @@ tables==3.0.0
 matplotlib==1.2.1
 patsy==0.1.0
 lxml==3.2.1
+sqlalchemy==0.8
