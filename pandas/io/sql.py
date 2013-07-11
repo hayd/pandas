@@ -133,7 +133,9 @@ def uquery(sql, con=None, cur=None, retry=True, params=None):
     return result
 
 
-def read_sql(sql, con, index_col=None, coerce_float=True, params=None):
+def read_sql(sql, con=None, index_col=None, 
+             user=None, passwd=None, host=None, db=None, flavor=None,
+             coerce_float=True, params=None):
     """
     Returns a DataFrame corresponding to the result set of the query
     string.
