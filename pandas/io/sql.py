@@ -7,6 +7,8 @@ from datetime import datetime, date
 import numpy as np
 import traceback
 
+import sqlite3
+
 from pandas.core.datetools import format as date_format
 from pandas.core.api import DataFrame, isnull
 
@@ -132,6 +134,35 @@ def uquery(sql, con=None, cur=None, retry=True, params=None):
             return uquery(sql, con, retry=False)
     return result
 
+class SQLAlchemyRequired(Exception):
+    pass
+
+def get_connection(con, user, passwd, host, db, flavor):
+    if isinstance(con, basestring):
+        try:
+            import sqlalchemy
+            con = alchemy_connect_sqlite(con)
+        except:
+            con = sqlite3.connect(con)
+    if isinstance(con, sqlite3.Connection):
+        return con
+    # If we reach here, SQLAlchemy will be needed.
+    try:
+        import sqlalchemy
+    except ImportError:
+        raise SQLAlchemyRequired
+    if isinstance(con, sqlalchemy.engine.Engine):
+        return con.connect()
+    if isinstance(con, sqlalchemy.engine.Connection):
+        return con 
+    if con is None:
+        raise NotImplementedError, "Cannot connect from user/passwd/db/host yet."
+
+def _alchemy_connect_sqlite(path):
+    if path == ':memory:':
+        return create_engine('sqlite://').connect()
+    else:
+        return create_engine('sqlite:///%s' % path).connect()
 
 def read_sql(sql, con=None, index_col=None, 
              user=None, passwd=None, host=None, db=None, flavor=None,
@@ -147,8 +178,9 @@ def read_sql(sql, con=None, index_col=None,
     ----------
     sql: string
         SQL query to be executed
-    con : Connection object, SQLAlchemy Engine object, or a filepath (sqlite 
-        only). Alternatively, specify a user, passwd, host, and db below.
+    con : Connection object, SQLAlchemy Engine object, a filepath string 
+        (sqlite only) or the string ':memory:' (sqlite only). Alternatively, 
+        specify a user, passwd, host, and db below.
     index_col: string, optional
         column name to use for the returned DataFrame object.
     user: username for database authentication
@@ -166,12 +198,13 @@ def read_sql(sql, con=None, index_col=None,
     params: list or tuple, optional
         List of parameters to pass to execute method.
     """
-    cur = execute(sql, con, params=params)
+    conn = get_connection(con, user, passwd, host, db, flavor)
+    cur = execute(sql, conn, params=params)
     rows = _safe_fetch(cur)
     columns = [col_desc[0] for col_desc in cur.description]
 
     cur.close()
-    con.commit()
+    conn.commit()
 
     result = DataFrame.from_records(rows, columns=columns,
                                     coerce_float=coerce_float)
