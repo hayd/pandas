@@ -5481,6 +5481,36 @@ class DataFrame(NDFrame):
 
         return self._constructor(new_data)
 
+    def isin(self, values, how='and'):
+        """
+        Return boolean vector showing whether elements in the DataFrame are
+        exactly contained in the passed sequence of values.
+
+        Parameters
+        ----------
+        values : sequence
+        how : {'and', 'or'}
+            and : True only if all of the elements are True for that row.
+            or : True if any of the elements are True for that row.
+
+        Returns
+        -------
+
+        bools : Series of booleans
+        """
+        values = set(values)
+        if how == 'and':
+            cond_n = len(self.columns)
+        elif how == 'or':
+            cond_n = 1
+        else:
+            raise ValueError('how must be "and" or "or". Got %s' % str(how))
+
+        together = self.apply(lambda x: x.isin(values), axis=1).sum(axis=1)
+        bools = together >= cond_n
+
+        return bools
+
     #----------------------------------------------------------------------
     # Deprecated stuff
 

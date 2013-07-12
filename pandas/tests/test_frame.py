@@ -10633,6 +10633,25 @@ starting,ending,measure
         f = lambda x: x.rename({1: 'foo'}, inplace=True)
         _check_f(data.copy()['c'], f)
 
+    def test_isin(self):
+        # GH #4211
+        df = DataFrame({'vals': [1, 2, 3, 4], 'ids': ['a', 'b', 'f', 'n'],
+                        'ids2': ['a', 'n', 'c', 'n']})
+        other = ['a', 'b', 'c']
+        result_and = df[['ids', 'ids2']].isin(other, how='and')
+        expected_and = Series([True, False, False, False])
+        assert_series_equal(result_and, expected_and)
+
+        result_or = df[['ids', 'ids2']].isin(other, how='or')
+        expected_or = Series([True, True, True, False])
+        assert_series_equal(result_or, expected_or)
+
+    def test_isin_empty(self):
+        df = DataFrame({'A': ['a', 'b', 'c'], 'B': ['a', 'e', 'f']})
+        result = df.isin([])
+        expected = Series([False, False, False])
+        assert_series_equal(result, expected)
+
 
 if __name__ == '__main__':
     # unittest.main()
