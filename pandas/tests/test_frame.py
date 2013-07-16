@@ -10638,19 +10638,32 @@ starting,ending,measure
         df = DataFrame({'vals': [1, 2, 3, 4], 'ids': ['a', 'b', 'f', 'n'],
                         'ids2': ['a', 'n', 'c', 'n']})
         other = ['a', 'b', 'c']
-        result_and = df[['ids', 'ids2']].isin(other, how='and')
-        expected_and = Series([True, False, False, False])
-        assert_series_equal(result_and, expected_and)
-
-        result_or = df[['ids', 'ids2']].isin(other, how='or')
-        expected_or = Series([True, True, True, False])
-        assert_series_equal(result_or, expected_or)
+        result = df.isin(other)
+        expected = DataFrame([df.loc[s].isin(other) for s in df.index])
+        assert_frame_equal(result, expected)
 
     def test_isin_empty(self):
         df = DataFrame({'A': ['a', 'b', 'c'], 'B': ['a', 'e', 'f']})
         result = df.isin([])
-        expected = Series([False, False, False])
-        assert_series_equal(result, expected)
+        expected = pd.DataFrame(False, df.index, df.columns)
+        assert_frame_equal(result, expected)
+
+    def test_isin_dict(self):
+        df = DataFrame({'A': ['a', 'b', 'c'], 'B': ['a', 'e', 'f']})
+        d = {'A': ['a']}
+
+        expected = DataFrame(False, df.index, df.columns)
+        expected.loc[0, 'A'] = True
+
+        result = df.isin(d)
+        assert_frame_equal(result, expected)
+
+        # non unique columns
+        df.columns = ['A', 'A']
+        expected = DataFrame(False, df.index, df.columns)
+        expected.loc[0, 'A'] = True
+        result = df.isin(d)
+        assert_frame_equal(result, expected)
 
 
 if __name__ == '__main__':

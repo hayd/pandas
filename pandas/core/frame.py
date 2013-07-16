@@ -5481,35 +5481,32 @@ class DataFrame(NDFrame):
 
         return self._constructor(new_data)
 
-    def isin(self, values, how='and'):
+    def isin(self, values):
         """
-        Return boolean vector showing whether elements in the DataFrame are
-        exactly contained in the passed sequence of values.
+        Return boolean DataFrame showing whether each elements in the DataFrame is
+        contained in items.
 
         Parameters
         ----------
-        values : sequence
-        how : {'and', 'or'}
-            and : True only if all of the elements are True for that row.
-            or : True if any of the elements are True for that row.
+        values : iterable or dictionary of columns to values
 
         Returns
         -------
 
-        bools : Series of booleans
+        DataFrame of booleans
         """
-        values = set(values)
-        if how == 'and':
-            cond_n = len(self.columns)
-        elif how == 'or':
-            cond_n = 1
+        if isinstance(values, dict):
+            from collections import defaultdict
+            from pandas.tools.merge import concat
+            values = defaultdict(list, values)
+            return concat((self.iloc[:, [i]].isin(values[ind] or values[i])
+                             for i, ind in enumerate(self.columns)), axis=1)
+
         else:
-            raise ValueError('how must be "and" or "or". Got %s' % str(how))
-
-        together = self.apply(lambda x: x.isin(values), axis=1).sum(axis=1)
-        bools = together >= cond_n
-
-        return bools
+            return DataFrame(lib.ismember(self.values.ravel(),
+                                          set(values)).reshape(self.shape),
+                             self.index,
+                             self.columns)
 
     #----------------------------------------------------------------------
     # Deprecated stuff
