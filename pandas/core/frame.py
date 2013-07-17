@@ -1693,7 +1693,9 @@ class DataFrame(NDFrame):
 
     @property
     def dtypes(self):
-        return self.apply(lambda x: x.dtype)
+        dtypes = self.apply(lambda x: x.dtype)
+        dtypes.name = 'dtypes'
+        return dtypes
 
     def convert_objects(self, convert_dates=True, convert_numeric=False, copy=True):
         """
@@ -4395,20 +4397,28 @@ class DataFrame(NDFrame):
             return self._constructor(data=results, index=self.index,
                                      columns=self.columns, copy=False)
         else:
+            #if not all(self.shape):
+            #    broadcast = True
+
             if not broadcast:
                 if not all(self.shape):
-                    # How to determine this better?
-                    is_reduction = False
-                    try:
-                        is_reduction = not isinstance(f(_EMPTY_SERIES),
-                                                      np.ndarray)
-                    except Exception:
-                        pass
-
-                    if is_reduction:
-                        return Series(NA, index=self._get_agg_axis(axis))
+                    if axis:
+                        result = self._constructor([f(self.iloc[i, :])
+                                                    for i, _ in enumerate(self.index)],
+                                          index=self.index)
                     else:
-                        return self.copy()
+                        result = self._constructor([f(self.iloc[:, i])
+                                                    for i, _ in enumerate(self.columns)],
+                                          index=self.columns)
+
+                    # are these the only cases when we flatten?
+                    if len(result.columns) == 1:
+                        return result.iloc[:, 0]
+
+                    elif not len(result.index):
+                        return Series(NA, index=result.columns)
+                    else:
+                        return result
 
                 if raw and not self._is_mixed_type:
                     return self._apply_raw(f, axis)

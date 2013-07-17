@@ -5443,6 +5443,12 @@ class TestDataFrame(unittest.TestCase, CheckIndexing,
                           index=result.index)
         assert_series_equal(result, expected)
 
+        # GH4272
+        df = DataFrame(columns=list('xyz'))
+        res = df.dtypes
+        exp = Series((df.iloc[:, i].dtype for i, _ in enumerate(df.columns)), index=df.columns, name='dtypes')
+        assert_series_equal(res, exp)
+
     def test_convert_objects(self):
 
         oops = self.mixed_frame.T.T
@@ -8017,9 +8023,16 @@ class TestDataFrame(unittest.TestCase, CheckIndexing,
         assert_series_equal(result, expected)
 
         # 2476
-        xp = DataFrame(index=['a'])
-        rs = xp.apply(lambda x: x['a'], axis=1)
-        assert_frame_equal(xp, rs)
+        df = DataFrame(index=['a'])
+        rs = df.apply(lambda x: x['a'], axis=0)
+        xp = df.loc['a']
+        xp.name = None
+        assert_series_equal(xp, rs)
+
+        df = DataFrame(columns=['A'])
+        expected = Series(2, ['A'])
+        result = df.apply(lambda x: 2)
+        assert_series_equal(expected, result)
 
     def test_apply_standard_nonunique(self):
         df = DataFrame(
