@@ -9,6 +9,7 @@ import nose
 import os
 
 import numpy as np
+from numpy import nan
 from numpy.testing import assert_array_equal
 
 from pandas.core.index import Index, Int64Index, MultiIndex, InvalidIndexError
@@ -2022,6 +2023,20 @@ class TestMultiIndex(unittest.TestCase):
         x = MultiIndex.from_tuples([('a', 'b'), (1, 2), ('c', 'd')],
                                    names=['x', 'y'])
         self.assertEqual(x[1:].names, x.names)
+
+    def test_last_col(self):
+        df = DataFrame({'action_1': ['referred', 'introduced', 'introduced',
+                                    'introduced', 'referred', 'introduced'],
+                        'action_2': ['referred', 'referred', nan, 'referred', nan, nan],
+                        'action_3': [nan, 'referred', nan, nan, nan, nan],
+                        'name': ['bill', 'bob', 'mary', 'june', 'dale', 'donna']
+                        }).reindex_axis(['name', 'action_1', 'action_2', 'action_3'], 1)
+
+        res = np.r_[[np.NaN], df.columns][((df == 'referred') *
+                                          (np.arange(df.shape[1]) + 1)).max(axis=1)]
+        exp = np.array(['action_2', 'action_3', nan, 'action_2', 'action_1', nan],
+                       dtype=object)
+        assert_array_equal(res, exp)
 
 
 def test_get_combined_index():
