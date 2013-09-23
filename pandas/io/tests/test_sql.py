@@ -233,8 +233,6 @@ class TestSQLAlchemy(unittest.TestCase):
 
 
 class TestSQLA_pymysql(TestSQLAlchemy):
-    def setUp(self):
-        raise nose.SkipTest("MySQLdb was not installed")
 
     def set_flavor_engine(self):
         # if can't import should skip all tests
@@ -259,8 +257,6 @@ class TestSQLA_pymysql(TestSQLAlchemy):
 
 
 class TestSQLA_MySQLdb(TestSQLAlchemy):
-    def setUp(self):
-        raise nose.SkipTest("MySQLdb was not installed")
 
     def set_flavor_engine(self):
         # if can't import should skip all tests
