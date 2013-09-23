@@ -691,7 +691,7 @@ class PandasSQLWithEngine(PandasSQL):
 
         columns = [(col_name, col_sqltype, col_name in keys)
                    for col_name, col_sqltype in zip(safe_columns, column_types)]
-        columns = map(lambda name, typ, pk: Column(name, typ, primary_key=pk), columns)
+        columns = [Column(name, typ, primary_key=pk) for (name, typ, pk) in columns]
 
         table = Table(table_name, meta, *columns)
         table.create()
