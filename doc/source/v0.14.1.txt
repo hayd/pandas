@@ -50,6 +50,8 @@ Known Issues
 Enhancements
 ~~~~~~~~~~~~
 
+- ``pd.date_range`` accepts datetime and numpy timedeltas (:issue:`6307`).
+
 .. _whatsnew_0141.performance:
 
 Performance
