@@ -802,15 +802,17 @@ class TestFloat64Index(tm.TestCase):
         self.assert_(isinstance(index, Float64Index))
         index = Float64Index(np.array([1.,2,3,4,5]))
         self.assert_(isinstance(index, Float64Index))
-        self.assertEqual(index.dtype, object)
+        self.assertEqual(index.dtype, float)
 
         index = Float64Index(np.array([1.,2,3,4,5]),dtype=np.float32)
         self.assert_(isinstance(index, Float64Index))
-        self.assertEqual(index.dtype, object)
+        # maybe this should raise rather than upcast to float64?
+        self.assertEqual(index.dtype, float)
 
         index = Float64Index(np.array([1,2,3,4,5]),dtype=np.float32)
         self.assert_(isinstance(index, Float64Index))
-        self.assertEqual(index.dtype, object)
+        # maybe this should raise rather than upcast to float64?
+        self.assertEqual(index.dtype, float)
 
         # nan handling
         result = Float64Index([np.nan, np.nan])

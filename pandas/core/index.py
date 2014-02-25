@@ -1867,7 +1867,7 @@ class Float64Index(Index):
     Parameters
     ----------
     data : array-like (1-dimensional)
-    dtype : NumPy dtype (default: object)
+    dtype : NumPy dtype (default: float)
     copy : bool
         Make a copy of input ndarray
     name : object
@@ -1878,10 +1878,19 @@ class Float64Index(Index):
     An Index instance can **only** contain hashable objects
     """
 
+    # Cython methods
+    _groupby = _algos.groupby_float64
+    _arrmap = _algos.arrmap_float64
+    _left_indexer_unique = _algos.left_join_indexer_unique_float64
+    _left_indexer = _algos.left_join_indexer_float64
+    _inner_indexer = _algos.inner_join_indexer_float64
+    _outer_indexer = _algos.outer_join_indexer_float64
+
     # when this is not longer object dtype this can be changed
-    #_engine_type = _index.Float64Engine
+    _engine_type = _index.Float64Engine
 
     def __new__(cls, data, dtype=None, copy=False, name=None, fastpath=False):
+        dtype = np.float64
 
         if fastpath:
             subarr = data.view(cls)
@@ -1893,18 +1902,11 @@ class Float64Index(Index):
         if issubclass(data.dtype.type, compat.string_types):
             cls._string_data_error(data)
 
-        if dtype is None:
-            dtype = np.float64
-
         try:
             subarr = np.array(data, dtype=dtype, copy=copy)
         except:
             raise TypeError('Unsafe NumPy casting, you must '
                             'explicitly cast')
-
-        # coerce to object for storage
-        if not subarr.dtype == np.object_:
-            subarr = subarr.astype(object)
 
         subarr = subarr.view(cls)
         subarr.name = name
